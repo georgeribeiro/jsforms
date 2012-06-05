@@ -6,9 +6,7 @@
     
     test("simple form", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
-	  label: "Name"
-	})
+	name: JSForm.TextField()
       });
       form = Form()
       ok(form.name, "LoginForm.name");
@@ -17,63 +15,61 @@
     test("simple form with two fields", function() {
       expect(2);
       var LoginForm = JSForm({
-	name: JSForm.TextField({
-	  label: "Name"
-	}),
-	password: JSForm.PasswordField({
-	  label: "Password"
-	})
+	name: JSForm.TextField(),
+	password: JSForm.PasswordField()
       });
       form = LoginForm();
       ok(form.name, "LoginForm.name");
       ok(form.password, "LoginForm.password");
     });
-
-    test("field toString", function() {
+    
+    test("field name html", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
-	  label: "Name"
-	})
+	name: JSForm.TextField()
       });
       form = Form();
-      equal(form.name.toString(),  "<input name=\"name\" type=\"text\"/>", "form.name toString");
+      equal(form.name(),  "<input name=\"name\" type=\"text\"/>", "form.name toString");
     });
 
-    test("field password toString", function() {
+    test("field password html", function() {
       var Form = JSForm({
-	name: JSForm.PasswordField({
-	  label: "Name"
-	})
+	name: JSForm.PasswordField()
       });
       form = Form();
-      equal(form.name.toString(),  "<input name=\"name\" type=\"password\"/>", "form.name toString");
+      equal(form.name(),  "<input name=\"name\" type=\"password\"/>", "form.name toString");
     });
 
     test("field with classes css toString", function() {
       var Form = JSForm({
 	name: JSForm.TextField({
-	  label: "Name",
 	  cssclass: ["c1", "c2"]
 	})
       });
       form = Form();
-      equal(form.name.toString(),  "<input name=\"name\" type=\"text\" class=\"c1 c2\"/>", "form.name with class toString");
+      equal(form.name(),  "<input name=\"name\" type=\"text\" class=\"c1 c2\"/>", "form.name with class toString");
     });
 
     test("field label", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
-	  label: "Name"
-	})
+	name: JSForm.TextField()
       });
       form = Form();
       equal(form.name.label(),  "<label for=\"name\">Name</label>");
     });
 
+    test("field label different field name", function() {
+      var Form = JSForm({
+	name: JSForm.TextField({
+	  label: "First Name"
+	})
+      });
+      form = Form();
+      equal(form.name.label(),  "<label for=\"name\">First Name</label>");
+    });
+
     test("validate form with data", function() {
       var Form = JSForm({
 	name: JSForm.TextField({
-	  label: "Name",
 	  validators: [JSForm.validators.required]
 	})
       });
@@ -84,7 +80,6 @@
     test("validate wrong form with data", function() {
       var Form = JSForm({
 	name: JSForm.TextField({
-	  label: "Name",
 	  validators: [JSForm.validators.required]
 	})
       });
@@ -96,7 +91,6 @@
       expect(2);
       var Form = JSForm({
 	name: JSForm.TextField({
-	  label: "Name",
 	  validators: [JSForm.validators.required]
 	})
       });
@@ -108,9 +102,7 @@
     test("field integer", function() {
       expect(3);
       var Form = JSForm({
-	age: JSForm.IntegerField({
-	  label: "Age"
-	})
+	age: JSForm.IntegerField()
       });
       form = Form({age: "20"});
       ok(form.validate(), "form validate");
@@ -120,9 +112,7 @@
 
     test("field integer invalid", function() {
       var Form = JSForm({
-	age: JSForm.IntegerField({
-	  label: "Age"
-	})
+	age: JSForm.IntegerField()
       });
       form = Form({age: "a"});
       ok(!form.validate(), "form invalid");
@@ -130,19 +120,16 @@
 
     test("field boolean", function() {
       var Form = JSForm({
-	active: JSForm.BooleanField({
-	  label: "Active"
-	})
+	active: JSForm.BooleanField()
       });
       form = Form();
-      equal(form.active.toString(), "<input name=\"active\" type=\"checkbox\" value=\"true\"/>", "field boolean toString()");
+      equal(form.active(), "<input name=\"active\" type=\"checkbox\"/>", "field boolean toString()");
     });
 
     test("field boolean validate", function() {
       expect(2);
       var Form = JSForm({
 	active: JSForm.BooleanField({
-	  label: "Active",
 	  validators: [JSForm.validators.required]
 	})
       });
@@ -151,55 +138,49 @@
       equal(form.active.data, true, "active is true");
     });
 
-    test("field boolean", function() {
+    test("field integer valid and render again", function() {
       var Form = JSForm({
-	active: JSForm.BooleanField({
-	  label: "Active"
-	})
-      });
-      form = Form();
-      equal(form.active.toString(), "<input name=\"active\" type=\"checkbox\" value=\"true\"/>", "field boolean toString()");
-    });
-
-    test("field integer valid and render toString again", function() {
-      var Form = JSForm({
-	age: JSForm.IntegerField({
-	  label: "Age"
-	})
+	age: JSForm.IntegerField()
       });
       form = Form({age: 1});
-      equal(form.age.toString(), "<input name=\"age\" type=\"text\" value=\"1\"/>");
+      equal(form.age(), "<input name=\"age\" type=\"text\" value=\"1\"/>");
     });
 
-    test("field boolean valid and render toString", function() {
+    test("field boolean valid and render", function() {
       var Form = JSForm({
-	active: JSForm.IntegerField({
-	  label: "Age"
-	})
+	active: JSForm.IntegerField()
       });
       form = Form({active: true});
-      equal(form.active.toString(), "<input name=\"active\" type=\"text\" value=\"true\"/>");
+      equal(form.active(), "<input name=\"active\" type=\"text\" value=\"true\"/>");
     });
 
     test("field decimal", function() {
       var Form = JSForm({
-	price: JSForm.DecimalField({
-	  label: "Price"
-	})
+	price: JSForm.DecimalField()
       });
       form = Form();
-      equal(form.price.toString(), "<input name=\"price\" type=\"text\"/>");
+      equal(form.price(), "<input name=\"price\" type=\"text\"/>");
     });
 
     test("field decimal validate", function() {
+      expect(2);
       var Form = JSForm({
-	price: JSForm.DecimalField({
-	  label: "Price"
-	})
+	price: JSForm.DecimalField()
       });
       form = Form({price: "22.2"});
       ok(form.validate(), "form validate");
-      equal(form.price.data, "22.20");
+      equal(form.price.data, "22.20", "price equal to 22.20");
+    });
+
+    test("field date invalid", function() {
+      expect(1);
+      var Form = JSForm({
+	date: JSForm.DateField({
+	  format: "dd/MM/yyyy"
+	})
+      });
+      form = Form({date: "10/13/2012"});
+      ok(!form.validate(), "form with date invalid");
     });
 
   });

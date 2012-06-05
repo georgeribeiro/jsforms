@@ -10,6 +10,11 @@ var JSForm;
 	: match;
     });
   };
+
+  String.prototype.capitalize = function() {
+    var result = this.replace(/[A-Z]/g, function(x) { return " " + x });
+    return result.charAt(0).toUpperCase() + result.substr(1);
+  };
   
   var toHtml = function(options) {
     var properties = []
@@ -19,67 +24,107 @@ var JSForm;
     return properties.join(" ");
   };
 
+  var Label = function(field, text) {
+    if(!text) {
+      text = text.capitalize();
+    }
+    var f = function() {
+      return "<label for=\"{0}\">{1}</label>".format(field, text);
+    };
+    f.field = field;
+    f.text = text;
+    return f;
+  }
+
+  var TextWidget = function(field) {
+    var properties = {
+      name: field.name_, 
+      type: "text"
+    };
+    if(field.data) {
+      properties.value = field.data;
+    }
+    if (field.cssclass) {
+      properties["class"] = field.cssclass.join(" ");
+    }
+    return "<input {0}/>".format(toHtml(properties));
+  };
+
+  var PasswordWidget = function(field) {
+    var properties = {
+      name: field.name_, 
+      type: "password"
+    };
+    if(field.data) {
+      properties.value = field.data;
+    }
+    if (field.cssclass) {
+      properties["class"] = field.cssclass.join(" ");
+    }
+    return "<input {0}/>".format(toHtml(properties));
+  };
+
+  var CheckboxWidget = function(field) {
+    var properties = {
+      name: field.name_, 
+      type: "checkbox"
+    };
+    if(field.data == true) {
+      properties.value = "true";
+    }
+    if (field.cssclass) {
+      properties["class"] = field.cssclass.join(" ");
+    }
+    return "<input {0}/>".format(toHtml(properties));
+  };
+
   var Field = function(options) {
 
-    var _label = options.label;
-    delete options.label;
-    
-    var cssclass = options.cssclass;
-    delete options.cssclass;
-
-    var validators = options.validators;
-    delete options.validators;
+    if(!options) {
+      options = {};
+    }
     
     var options = options;
     
-    var toString = function() {
-      properties = {name: self.name, type: self.type}
-      if(self.data) {
-	properties.value = self.data;
-      }
-      for(k in options) {
-	properties[k] = options[k];
-      }
-      var r = "<input {0}".format(toHtml(properties));
-      if (cssclass) {
-	r += " class=\"{0}\"".format(cssclass.join(" "));
-      }
-      return r + "/>";
+    var call = function() {
+      var widget = options.widget ? options.widget : f.widget;
+      return widget(f);
     };
 
     var validate = function(data) {
-      for(k in validators) {
-	if(!validators[k](data))
-	  return false;
+      var r = true;
+      for(k in f.validators) {
+	if(!f.validators[k](data))
+	  r = false;
       }
-      self.data = data;
-      return true;
+      f.data = data;
+      return r;
     }
-
+    
     var setName = function(name) {
-      self.name = name;
-    }
-
-    var getLabel = function() {
-      return "<label for=\"{0}\">{1}</label>".format(self.name, _label);
-    };
-
-    var self = {
-      toString: toString,
-      label: getLabel,
-      validate: validate,
-      setName: setName,
-      options: options,
-      type: "text"
+      f.name_ = name;
+      f.label = Label(name, f.options.label ? f.options.label : name.capitalize());
     };
     
-    return self;
+    f = call;
+    f.options = options;
+    f.widget = null;
+    f.label = null;
+    f.cssclass = options.cssclass;
+    f.validators = options.validators;
+    f.data = null;
+    f.validate = validate;
+    f.setName = setName;
+    return f;
+
   };
 
   var IntegerField = function(options) {
-    var that = new Field(options);
+    var that = Field(options);
+    that.widget = TextWidget;
+    
     var thatvalidate = that.validate;
-    var validate = function(data) {
+    that.validate = function(data) {
       if(isNaN(data))
 	return false;
       var r = thatvalidate(data);
@@ -87,47 +132,57 @@ var JSForm;
 	that.data = parseInt(data);
       return r;
     };
-    that.validate = validate;
+    
     return that;
   };
 
   var TextField = function(options) {
-    var that = new Field(options);
+    var that = Field(options);
+    that.widget = TextWidget;
     return that;
   };
 
   var PasswordField = function(options) {
-    var that = new Field(options);
-    that.type = "password";
+    var that = Field(options);
+    that.widget = PasswordWidget;
     return that;
   };
 
   var BooleanField = function(options) {
-    var that = new Field(options);
-    that.type = "checkbox";
-    that.options.value = "true";
+    var that = Field(options);
+    that.widget = CheckboxWidget;
+    
     thatvalidate = that.validate;
     that.validate = function(data) {
       r = thatvalidate(data);
       if(r)
 	that.data = data == "true";
       return r;
-    }
+    };
+   
     return that;
   };
 
   var DecimalField = function(options) {
-    var decimalPlaces = options.decimalPlaces ? options.decimalPlaces : 2;
-    delete options.decimalPlaces;
-    var that = new Field(options);
+    var that = Field(options);
+    that.decimalPlaces = that.options.decimalPlaces ? that.options.decimalPlaces : 2;
+    that.widget = TextWidget;
+    
     thatvalidate = that.validate;
     that.validate = function(data) {
       if(isNaN(data))
 	return false;
       var r = thatvalidate(data);
-      that.data = parseFloat(data).toFixed(decimalPlaces);
+      that.data = parseFloat(data).toFixed(that.decimalPlaces);
       return r;
     };
+    
+    return that;
+  }
+
+  var DateField = function(options) {
+    var that = Field(options);
+    that.widget = TextWidget;
     return that;
   }
 
@@ -157,23 +212,28 @@ var JSForm;
     return klass;
   };
 
-  var validators = {
+  JSForm = Form;
+
+  JSForm.TextField = TextField;
+  JSForm.IntegerField = IntegerField;
+  JSForm.PasswordField = PasswordField;
+  JSForm.BooleanField = BooleanField;
+  JSForm.DecimalField = DecimalField;
+  JSForm.DateField = DateField;
+
+  JSForm.widgets = {
+    TextWidget: TextWidget,
+    PasswordWidget: PasswordWidget,
+    CheckboxWidget: CheckboxWidget
+  };
+
+  JSForm.validators = {
     required: function(data) {
       if (data)
 	return true;
       else
 	return false;
     }
-  }
-
-  JSForm = Form;
-
-  JSForm.TextField = function(options) { return new TextField(options) };
-  JSForm.IntegerField = function(options) { return new IntegerField(options) };
-  JSForm.PasswordField = function(options) { return new PasswordField(options) };
-  JSForm.BooleanField = function(options) { return new BooleanField(options) };
-  JSForm.DecimalField = function(options) { return new DecimalField(options) };
-
-  JSForm.validators = validators;
+  };
 
 })(jQuery);
