@@ -15,15 +15,61 @@ var JSForm;
     var result = this.replace(/[A-Z]/g, function(x) { return " " + x });
     return result.charAt(0).toUpperCase() + result.substr(1);
   };
+
+  Date.prototype.equal = function(other) {
+    return this.getDate() == other.getDate()
+      && this.getMonth() == other.getMonth()
+      && this.getFullYear() == other.getFullYear();
+  };
+
+  var _regexDate = {};
+
+  var formatToRegex = function(format) {
+    var formats = {
+      d: "\\d\\d",
+      M: "\\d\\d",
+      y: "\\d\\d\\d\\d"
+    };
+    var strregex = "";
+    for(i in format) {
+      var c = format[i];
+      if (typeof c == 'string') {
+	if (format[i] in formats)
+	  strregex += formats[c];
+	else
+	  strregex += c;
+      }
+    }
+    return new RegExp("^" + strregex + "$", "g");
+  };
+
+  Date.parse = function(strdate, format) {
+    var 
+    d = 1, 
+    M = 1, 
+    y = 1970, 
+    h = 0, 
+    m = 0, 
+    s = 0;
+    
+    if(_regexDate[format] == null) {
+      _regexDate[format] = formatToRegex(format);  
+    }
+    
+    var re = _regexDate[format];
+    console.log(strdate.match(re));
+
+    return new Date(y, M - 1, d, h, m, s);
+  };
   
   var toHtml = function(options) {
-    var properties = []
+    var properties = [];
     for(key in options) {
       properties.push("{0}=\"{1}\"".format(key, options[key]));
     }
     return properties.join(" ");
   };
-
+  
   var Label = function(field, text) {
     if(!text) {
       text = text.capitalize();
