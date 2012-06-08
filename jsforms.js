@@ -2,23 +2,19 @@ var JSForm;
 
 (function($) {
   
-  String.prototype.format = function() {
-    var args = arguments;
-    return this.replace(/{(\d+)}/g, function(match, number) { 
+  function sf(s) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return s.replace(/{(\d+)}/g, function(match, number) { 
       return typeof args[number] != 'undefined'
 	? args[number]
 	: match;
     });
-  };
+  }
 
-  String.prototype.capitalize = function() {
-    var result = this.replace(/[A-Z]/g, function(x) { return " " + x });
+  function sc(s) {
+    var result = s.replace(/[A-Z]/g, function(x) { return " " + x });
     return result.charAt(0).toUpperCase() + result.substr(1);
-  };
-
-  Date.prototype.equal = function(other) {
-    
-  };
+  }
 
   var _regexDate = {};
 
@@ -66,8 +62,12 @@ var JSForm;
     for(var i = 0; i < tokens.length; i++) {
       if(tokens[i] == "d")
 	d = parseInt(results[i + 1], 10);
-      else if (tokens[i] == "M")
+      else if (tokens[i] == "M") {
 	M = parseInt(results[i + 1], 10);
+	if (M > 12) {
+	  return null;
+	}
+      }
       else if (tokens[i] == "y")
 	y = parseInt(results[i + 1], 10);
       else if (tokens[i] == "h")
@@ -78,13 +78,16 @@ var JSForm;
 	s = parseInt(results[i + 1], 10);
     }
     var date = new Date(y, M - 1, d, h, m, s);
+    if(date == "Invalid Date") {
+      return null;
+    }
     return date;
   };
   
   function toHtml(options) {
     var properties = [];
     for(key in options) {
-      properties.push("{0}=\"{1}\"".format(key, options[key]));
+      properties.push(sf("{0}=\"{1}\"", key, options[key]));
     }
     return properties.join(" ");
   }
@@ -94,7 +97,7 @@ var JSForm;
       text = text.capitalize();
     }
     var f = function() {
-      return "<label for=\"{0}\">{1}</label>".format(field, text);
+      return sf("<label for=\"{0}\">{1}</label>", field, text);
     };
     f.field = field;
     f.text = text;
@@ -112,7 +115,7 @@ var JSForm;
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
     }
-    return "<input {0}/>".format(toHtml(properties));
+    return sf("<input {0}/>", toHtml(properties));
   };
 
   var PasswordWidget = function(field) {
@@ -126,7 +129,7 @@ var JSForm;
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
     }
-    return "<input {0}/>".format(toHtml(properties));
+    return sf("<input {0}/>", toHtml(properties));
   };
 
   var CheckboxWidget = function(field) {
@@ -140,7 +143,7 @@ var JSForm;
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
     }
-    return "<input {0}/>".format(toHtml(properties));
+    return sf("<input {0}/>", toHtml(properties));
   };
 
   var Field = function(options) {
@@ -168,7 +171,7 @@ var JSForm;
     
     var setName = function(name) {
       f.name_ = name;
-      f.label = Label(name, f.options.label ? f.options.label : name.capitalize());
+      f.label = Label(name, f.options.label ? f.options.label : sc(name));
     };
     
     f = call;

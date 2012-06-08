@@ -188,10 +188,16 @@
       ok(dateEqual(date, expected), "date equal expected");
     });
     
-    test("parse date 2", function() {
+    test("parse date with h m s", function() {
       var date = Date.parseDate("08/09/2013 04:06:05", "d/M/y h:m:s");
       var expected = new Date(2013, 8, 8, 4, 6, 5);
       ok(dateEqual(date, expected), "date equal expected");
+    });
+
+    test("parse date invalid", function() {
+      var date = Date.parseDate("08/13/2013 04:06:05", "d/M/y h:m:s");
+      console.log(date);
+      equal(date, null, "date is null");
     });
     
   });
