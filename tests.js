@@ -1,5 +1,15 @@
 (function($) {
 
+  function dateEqual(date, other) {
+    return date != null && other != null
+      && date.getDate() == other.getDate()
+      && date.getMonth() == other.getMonth()
+      && date.getFullYear() == other.getFullYear()
+      && date.getHours() == other.getHours()
+      && date.getMinutes() == other.getMinutes()
+      && date.getSeconds() == other.getSeconds();
+  };
+
   $(function() {
     
     module("jsforms");
@@ -172,18 +182,18 @@
       equal(form.price.data, "22.20", "price equal to 22.20");
     });
 
-    test("date equal", function() {
-      var d1 = new Date(2012, 3, 4);
-      var d2 = new Date(2012, 3, 4);
-      ok(d1.equal(d2), "d1 equal d2");
-    });
-
     test("parse date", function() {
-      var date = Date.parse("01/01/2012", "d/M/y");
-      var expected = new Date(2012, 0, 1);
-      ok(date.equal(expected), "date equal expected");
+      var date = Date.parseDate("2012-03-04", "y-M-d");
+      var expected = new Date(2012, 2, 4);
+      ok(dateEqual(date, expected), "date equal expected");
     });
-
+    
+    test("parse date 2", function() {
+      var date = Date.parseDate("08/09/2013 04:06:05", "d/M/y h:m:s");
+      var expected = new Date(2013, 8, 8, 4, 6, 5);
+      ok(dateEqual(date, expected), "date equal expected");
+    });
+    
   });
 
 })(jQuery);

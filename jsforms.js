@@ -17,23 +17,24 @@ var JSForm;
   };
 
   Date.prototype.equal = function(other) {
-    return this.getDate() == other.getDate()
-      && this.getMonth() == other.getMonth()
-      && this.getFullYear() == other.getFullYear();
+    
   };
 
   var _regexDate = {};
 
-  var formatToRegex = function(format) {
+  function formatToRegex(format) {
     var formats = {
-      d: "\\d\\d",
-      M: "\\d\\d",
-      y: "\\d\\d\\d\\d"
+      d: "(\\d{2})",
+      M: "(\\d{2})",
+      y: "(\\d{4})",
+      h: "(\\d{2})",
+      m: "(\\d{2})",
+      s: "(\\d{2})"
     };
     var strregex = "";
     for(i in format) {
       var c = format[i];
-      if (typeof c == 'string') {
+      if (typeof c == "string") {
 	if (format[i] in formats)
 	  strregex += formats[c];
 	else
@@ -41,34 +42,52 @@ var JSForm;
       }
     }
     return new RegExp("^" + strregex + "$", "g");
-  };
+  }
 
-  Date.parse = function(strdate, format) {
+  Date.parseDate = function(strdate, format) {
     var 
     d = 1, 
-    M = 1, 
+    M = 0, 
     y = 1970, 
     h = 0, 
     m = 0, 
     s = 0;
-    
-    if(_regexDate[format] == null) {
-      _regexDate[format] = formatToRegex(format);  
+
+    if(_regexDate[format] == null || _regexDate[format] == undefined) {
+      _regexDate[format] = formatToRegex(format);
     }
     
     var re = _regexDate[format];
-    console.log(strdate.match(re));
-
-    return new Date(y, M - 1, d, h, m, s);
+    var results = re.exec(strdate);
+    if (results == null) {
+      return null;
+    }
+    var tokens = format.replace(/[^d|M|y|h|m|s]/g, "").split("");
+    for(var i = 0; i < tokens.length; i++) {
+      if(tokens[i] == "d")
+	d = parseInt(results[i + 1], 10);
+      else if (tokens[i] == "M")
+	M = parseInt(results[i + 1], 10);
+      else if (tokens[i] == "y")
+	y = parseInt(results[i + 1], 10);
+      else if (tokens[i] == "h")
+	h = parseInt(results[i + 1], 10);
+      else if (tokens[i] == "m")
+	m = parseInt(results[i + 1], 10);
+      else if (tokens[i] == "s")
+	s = parseInt(results[i + 1], 10);
+    }
+    var date = new Date(y, M - 1, d, h, m, s);
+    return date;
   };
   
-  var toHtml = function(options) {
+  function toHtml(options) {
     var properties = [];
     for(key in options) {
       properties.push("{0}=\"{1}\"".format(key, options[key]));
     }
     return properties.join(" ");
-  };
+  }
   
   var Label = function(field, text) {
     if(!text) {
