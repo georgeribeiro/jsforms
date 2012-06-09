@@ -188,7 +188,7 @@
       ok(dateEqual(date, expected), "date equal expected");
     });
     
-    test("parse date with h m s", function() {
+    test("parse date and time", function() {
       var date = Date.parseDate("08/09/2013 04:06:05", "d/M/y h:m:s");
       var expected = new Date(2013, 8, 8, 4, 6, 5);
       ok(dateEqual(date, expected), "date equal expected");
@@ -196,8 +196,85 @@
 
     test("parse date invalid", function() {
       var date = Date.parseDate("08/13/2013 04:06:05", "d/M/y h:m:s");
-      console.log(date);
       equal(date, null, "date is null");
+    });
+
+    test("date to string format", function() {
+      var date = Date.parseDate("08/11/2013 04:06:05", "d/M/y h:m:s");
+      equal(date.formated("d/M/y h:m:s"), "08/11/2013 04:06:05", "date formated");
+    });
+
+    test("field date", function() {
+      var Form = JSForm({
+	date: JSForm.DateField()
+      });
+      form = Form();
+      equal(form.date(), "<input name=\"date\" type=\"text\"/>", "field date equal");
+    });
+    
+    test("field date valid", function() {
+      var Form = JSForm({
+	date: JSForm.DateField({
+	  format: "d/M/y"
+	})
+      });
+      form = Form({date: "04/05/2012"});
+      ok(form.validate(), "form is valid");
+    });
+
+    test("field date invalid", function() {
+      var Form = JSForm({
+	date: JSForm.DateField({
+	  format: "d/M/y"
+	})
+      });
+      form = Form({date: "01-01-2012"});
+      ok(!form.validate(), "form is invalid");
+    });
+    
+    test("field date valid and render", function() {
+      expect(2);
+      var Form = JSForm({
+	date: JSForm.DateField({
+	  format: "d/M/y"
+	})
+      });
+      form = Form({date: "04/03/2012"});
+      ok(form.validate(), "form is valid");
+      equal(form.date(), "<input name=\"date\" type=\"text\" value=\"04/03/2012\"/>", "render date");
+    });
+
+    test("field integer default", function() {
+      expect(2);
+      var Form = JSForm({
+	value: JSForm.IntegerField({
+	  defaults: 1
+	})
+      });
+      form = Form();
+      ok(form.validate(), "form is valid");
+      equal(form.value.data, 1, "value default equal 1");
+    });
+
+    test("field integer default render", function() {
+      var Form = JSForm({
+	value: JSForm.IntegerField({
+	  defaults: 1
+	})
+      });
+      form = Form();
+      equal(form.value(), "<input name=\"value\" type=\"text\" value=\"1\"/>", "value render");
+    });
+
+    test("field date default render", function() {
+      var Form = JSForm({
+	date: JSForm.DateField({
+	  format: "d/M/y",
+	  defaults: function() { return new Date(2012, 3, 20); }
+	})
+      });
+      form = Form();
+      equal(form.date(), "<input name=\"date\" type=\"text\" value=\"20/04/2012\"/>", "date render");
     });
     
   });

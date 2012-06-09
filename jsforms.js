@@ -2,6 +2,10 @@ var JSForm;
 
 (function($) {
   
+  function isdef(obj) {
+    return obj != undefined && obj != null;
+  }
+
   function sf(s) {
     var args = Array.prototype.slice.call(arguments, 1);
     return s.replace(/{(\d+)}/g, function(match, number) { 
@@ -16,7 +20,16 @@ var JSForm;
     return result.charAt(0).toUpperCase() + result.substr(1);
   }
 
-  var _regexDate = {};
+  function slp(val, size, ch) {
+    var result = String(val);
+    if(!isdef(ch)) {
+      ch = " ";
+    }
+    while(result.length < size) {
+      result = ch + result;
+    }
+    return result;
+  }
 
   function formatToRegex(format) {
     var formats = {
@@ -43,17 +56,13 @@ var JSForm;
   Date.parseDate = function(strdate, format) {
     var 
     d = 1, 
-    M = 0, 
+    M = 1, 
     y = 1970, 
     h = 0, 
     m = 0, 
     s = 0;
-
-    if(_regexDate[format] == null || _regexDate[format] == undefined) {
-      _regexDate[format] = formatToRegex(format);
-    }
     
-    var re = _regexDate[format];
+    var re = formatToRegex(format);
     var results = re.exec(strdate);
     if (results == null) {
       return null;
@@ -83,6 +92,33 @@ var JSForm;
     }
     return date;
   };
+
+  Date.prototype.formated = function(format) {
+    var re = /[d|M|y|h|m|s]/g;
+    var $this = this;
+    var result = format.replace(re, function(match, number) {
+      if (match == "d") {
+	var r = $this.getDate();
+	return slp(r, 2, "0");
+      } else if (match == "M") {
+	var r = $this.getMonth() + 1;
+	return slp(r, 2, "0");
+      } else if (match == "y") {
+	var r = $this.getFullYear();
+	return slp(r, 4, "0");
+      } else if (match == "h") {
+	var r = $this.getHours();
+	return slp(r, 2, "0");
+      } else if (match == "m") {
+	var r = $this.getMinutes();
+	return slp(r, 2, "0");
+      } else if (match == "s") {
+	var r = $this.getSeconds();
+	return slp(r, 2, "0");
+      }
+    });
+    return result;
+  };
   
   function toHtml(options) {
     var properties = [];
@@ -109,8 +145,8 @@ var JSForm;
       name: field.name_, 
       type: "text"
     };
-    if(field.data) {
-      properties.value = field.data;
+    if(isdef(field.data)) {
+      properties.value = field.renderValue();
     }
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
@@ -123,8 +159,8 @@ var JSForm;
       name: field.name_, 
       type: "password"
     };
-    if(field.data) {
-      properties.value = field.data;
+    if(isdef(field.data)) {
+      properties.value = field.renderValue();
     }
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
@@ -137,8 +173,8 @@ var JSForm;
       name: field.name_, 
       type: "checkbox"
     };
-    if(field.data == true) {
-      properties.value = "true";
+    if(isdef(field.data)) {
+      properties.value = field.renderValue();
     }
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
@@ -147,17 +183,17 @@ var JSForm;
   };
 
   var Field = function(options) {
-
-    if(!options) {
-      options = {};
-    }
     
-    var options = options;
+    var options = options || {};
     
     var call = function() {
       var widget = options.widget ? options.widget : f.widget;
       return widget(f);
     };
+
+    var renderValue = function() {
+      return f.data;
+    }
 
     var validate = function(data) {
       var r = true;
@@ -173,18 +209,32 @@ var JSForm;
       f.name_ = name;
       f.label = Label(name, f.options.label ? f.options.label : sc(name));
     };
+
+    var df = options.defaults;
     
-    f = call;
+    var f = call;
     f.options = options;
     f.widget = null;
     f.label = null;
     f.cssclass = options.cssclass;
-    f.validators = options.validators;
-    f.data = null;
+    f.validators = options.validators; 
+    f.data = df ? (typeof df == "function" ? df() : df) : null;
     f.validate = validate;
     f.setName = setName;
+    f.renderValue = renderValue;
     return f;
+  };
 
+  var TextField = function(options) {
+    var that = Field(options);
+    that.widget = TextWidget;
+    return that;
+  };
+
+  var PasswordField = function(options) {
+    var that = Field(options);
+    that.widget = PasswordWidget;
+    return that;
   };
 
   var IntegerField = function(options) {
@@ -201,18 +251,6 @@ var JSForm;
       return r;
     };
     
-    return that;
-  };
-
-  var TextField = function(options) {
-    var that = Field(options);
-    that.widget = TextWidget;
-    return that;
-  };
-
-  var PasswordField = function(options) {
-    var that = Field(options);
-    that.widget = PasswordWidget;
     return that;
   };
 
@@ -238,9 +276,9 @@ var JSForm;
     
     thatvalidate = that.validate;
     that.validate = function(data) {
+      var r = thatvalidate(data);
       if(isNaN(data))
 	return false;
-      var r = thatvalidate(data);
       that.data = parseFloat(data).toFixed(that.decimalPlaces);
       return r;
     };
@@ -250,32 +288,46 @@ var JSForm;
 
   var DateField = function(options) {
     var that = Field(options);
+    that.format = that.options.format ? that.options.format : "y-M-d h:m:s";
     that.widget = TextWidget;
+    thatvalidate = that.validate;
+    that.validate = function(data) {
+      var r = thatvalidate(data);
+      var d = Date.parseDate(data, that.format);
+      if (d == null)
+	return false;
+      that.data = d;
+      return r;
+    };
+    that.renderValue = function() {
+      var data = that.data;
+      return data.formated(that.format);
+    };
     return that;
   }
 
   var Form = function(fields) {
     var fields = fields;
     var klass = function(data) {
-      var data = data;
-      var result = {};
-      result.validate = function() {
+      var data = data || {};
+      var form = {};
+      for(k in fields) {
+	form[k] = fields[k];
+	form[k].setName(k);
+	if(isdef(data) && isdef(data[k])) {
+	  form[k].data = data[k];
+	}
+      }
+      form.validate = function() {
 	var r = true;
 	for(k in fields) {
-	  if(!fields[k].validate(data[k])) {
+	  if(!fields[k].validate(data[k] || fields[k].data)) {
 	    r = false;
 	  }
 	}
 	return r;
       };
-      for(k in fields) {
-	result[k] = fields[k];
-	result[k].setName(k);
-	if(data) {
-	  result[k].data = data[k];
-	}
-      }
-      return result;
+      return form;
     };
     return klass;
   };
