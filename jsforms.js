@@ -1,10 +1,6 @@
 var JSForm;
 
 (function() {
-  
-  function isdef(obj) {
-    return obj != undefined && obj != null;
-  }
 
   function sf(s) {
     var args = Array.prototype.slice.call(arguments, 1);
@@ -21,7 +17,7 @@ var JSForm;
   
   function slp(val, size, ch) {
     var result = String(val);
-    if(!isdef(ch)) {
+    if(!ch) {
       ch = " ";
     }
     while(result.length < size) {
@@ -44,7 +40,7 @@ var JSForm;
       var c = format[i];
       if (typeof c == "string") {
         if (format[i] in formats)
-          strregex += formats[c]
+          strregex += formats[c];
         else
           strregex += c;
       }
@@ -128,223 +124,252 @@ var JSForm;
   }
   
   var Label = function(field, text) {
-    var self = function() {
-      return sf("<label for=\"{0}\">{1}</label>", self.field._name, self.text);
+    var $this = function() {
+      return sf("<label for=\"{0}\">{1}</label>", $this.field._name, $this.text);
     };
     var toString = function() {
-      return self();
+      return $this();
     };
-    self.field = field;
-    self.text = text || sc(field._name);
-    self.toString = toString;
-    return self;
+    $this.field = field;
+    $this.text = text || sc(field._name);
+    $this.toString = toString;
+    return $this;
   }
 
   var Input = function() {
-    var self = function(field) {
+    var $this = function(field) {
       var properties = {
 	id: field.id,
-	name: field._name,
-	type: self.type
+	name: field._name
       };
-      if(isdef(field.raw_data))
+      if($this.type)
+	properties.type = $this.type;
+      if(field.raw_data)
 	properties.value = field.value();
       if (field.cssclass) {
 	properties["class"] = field.cssclass.join(" ");
       }
-      return self.render(properties);
+      return $this.render(properties);
     };
-    self.type = null;
-    self.render = function(properties) {
+    $this.type = null;
+    $this.render = function(properties) {
       return sf("<input {0}/>", toHtml(properties));
     };
-    return self;
+    return $this;
   };
 
   var TextInput = function() {
-    var self = Input();
-    self.type = "text";
-    return self;
+    var $this = Input();
+    $this.type = "text";
+    return $this;
   };
 
+  var TextAreaInput = function() {
+    var $this = Input();
+    
+    $this.render = function(properties) {
+      var value = properties.value;
+      delete properties.value;
+      return sf("<textarea {0}>{1}</textarea>", toHtml(properties), value ? value : "");
+    };
+    
+    return $this;
+  }
+
   var PasswordInput = function(field) {
-    var self = Input();
-    self.type = "password";
-    return self;
+    var $this = Input();
+    $this.type = "password";
+    return $this;
   };
 
   var CheckboxInput = function(field) {
-    var self = Input();
-    self.type = "checkbox";
-    return self;
+    var $this = Input();
+    $this.type = "checkbox";
+    return $this;
   };
 
   var Field = function(options) {
     
-    var self = function() {
-      return self.widget(self);
+    var $this = function() {
+      return $this.widget($this);
     };
 
     var toString = function() {
-      return self();
+      return $this();
     };
 
     var value = function() {
-      return self.raw_data;
+      return $this.raw_data;
     };
 
     var validate = function() {
-      for(var i in self.validators) {
-	self.validators[i](self);
+      for(var i in $this.validators) {
+	$this.validators[i]($this);
       }
-      return self.errors.length == 0;
+      return $this.errors.length == 0;
     };
     
     var setName = function(name) {
-      self._name = name;
-      self.id = self.options.id || name;
-      self.label = Label(self, self.options.label);
+      $this._name = name;
+      $this.id = $this.options.id || name;
+      $this.label = Label($this, $this.options.label);
     };
 
     var processData = function(data) {
-      self.data = data;
+      $this.data = data;
     };
     
-    self.toString = toString;
-    self.options = options || {};
-    self.widget = null;
-    if(self.options.widget)
-      self.widget = self.options.widget;
-    self.label = null;
-    self.cssclass = self.options.cssclass;
-    self.validators = self.options.validators; 
-    self.errors = [];
-    var df = self.options.defaults;
-    self.data = df ? (typeof df == "function" ? df() : df) : null;
-    self.raw_data = null;
-    self.validate = validate;
-    self.setName = setName;
-    self.processData = processData;
-    self.value = value;
-    self._name = null;
-    self.id = null;
-    return self;
+    $this.toString = toString;
+    $this.options = options || {};
+    $this.widget = null;
+    if($this.options.widget)
+      $this.widget = $this.options.widget;
+    $this.label = null;
+    $this.cssclass = $this.options.cssclass;
+    $this.validators = $this.options.validators; 
+    $this.errors = [];
+    var df = $this.options.defaults;
+    $this.data = df ? (typeof df == "function" ? df() : df) : null;
+    $this.raw_data = null;
+    $this.validate = validate;
+    $this.setName = setName;
+    $this.processData = processData;
+    $this.value = value;
+    $this._name = null;
+    $this.id = null;
+    return $this;
   };
 
   var StringField = function(options) {
-    var self = Field(options);
-    self.widget = TextInput();
-    return self;
+    var $this = Field(options);
+    $this.widget = TextInput();
+    return $this;
   };
 
+  var TextAreaField = function(options) {
+    var $this = Field(options);
+    $this.widget = TextAreaInput();
+    return $this;
+  };
+
+
   var PasswordField = function(options) {
-    var self = Field(options);
-    self.widget = PasswordInput();
-    return self;
+    var $this = Field(options);
+    $this.widget = PasswordInput();
+    return $this;
   };
 
   var IntegerField = function(options) {
-    var self = Field(options);
-    self.widget = TextInput();
+    var $this = Field(options);
+    $this.widget = TextInput();
 
-    self.processData = function(data) {
-      self.data = parseInt(data);
-      if(isNaN(self.data))
-	self.errors.push("Not is a valid integer");
+    $this.processData = function(data) {
+      $this.data = parseInt(data);
+      if(isNaN($this.data)) {
+	$this.data = null;
+	$this.errors.push("Not is a valid integer");
+      }
     };
     
-    return self;
+    return $this;
   };
 
   var BooleanField = function(options) {
-    var self = Field(options);
-    self.widget = CheckboxInput();
+    var $this = Field(options);
+    $this.widget = CheckboxInput();
 
-    self.processData = function(data) {
-      self.data = data == "true";
+    $this.processData = function(data) {
+      $this.data = data == "true";
     };
 
-    self.value = function() {
-      if(self.data)
+    $this.value = function() {
+      if($this.data)
 	return "true";
       else
 	return "false";
     };
    
-    return self;
+    return $this;
   };
 
   var DecimalField = function(options) {
-    var self = Field(options);
-    var dp = self.options.decimalPlaces;
-    self.decimalPlaces = dp ? dp : 2;
-    self.widget = TextInput();
+    var $this = Field(options);
+    var dp = $this.options.decimalPlaces;
+    $this.decimalPlaces = dp ? dp : 2;
+    $this.widget = TextInput();
 
-    self.processData = function(data) {
-      self.data = parseFloat(data).toFixed(self.decimalPlaces);
-      if(isNaN(self.data))
-	self.errors.push("Not is a decimal valid");
+    $this.processData = function(data) {
+      $this.data = parseFloat(data).toFixed($this.decimalPlaces);
+      if(isNaN($this.data)) {
+	$this.data = null;
+	$this.errors.push("Not is a decimal valid");
+      }
     };
     
-    return self;
+    return $this;
   }
 
   var DateField = function(options) {
-    var self = Field(options);
-    self.format = self.options.format ? self.options.format : "y-M-d h:m:s";
-    self.widget = TextInput();
+    var $this = Field(options);
+    $this.format = $this.options.format ? $this.options.format : "y-M-d h:m:s";
+    $this.widget = TextInput();
 
-    self.value = function() {
-      var data = self.data;
-      return data.formated(self.format);
+    $this.value = function() {
+      var data = $this.data;
+      return data.formated($this.format);
     };
 
-    self.processData = function(data) {
-      self.data = Date.parseDate(data, self.format);
-      if(!isdef(self.data))
-	self.errors.push("Not is a date valid");
+    $this.processData = function(data) {
+      $this.data = Date.parseDate(data, $this.format);
+      if(!$this.data)
+	$this.errors.push("Not is a date valid");
     }
     
-    return self;
+    return $this;
   }
 
   var Form = function(fields) {
+    
     return function(data) {
       var data = data || {};
-      var self = {
+      var $this = {
 	_fields: {}
       };
+      
       for(var i in fields) {
 	var field = fields[i];
 	field.setName(i);
-	if(isdef(data) && isdef(data[i])) {
+	if(data && data[i]) {
 	  field.raw_data = data[i];
 	  field.processData(data[i]);
 	} else {
 	  field.raw_data = field.data;
 	}
-	self[i] = field;
-	self._fields[i] = field;
-	self.errors = {};
-      }
-      self.validate = function() {
+	$this[i] = field;
+	$this._fields[i] = field;
+	$this.errors = {};
+      };
+      
+      $this.validate = function() {
 	var success = true;
-	for(var i in self._fields) {
-	  var field = self._fields[i];
+	for(var i in $this._fields) {
+	  var field = $this._fields[i];
 	  if(!field.validate()) {
 	    success = false;
 	  }
-	  self.errors[field._name] = field.errors;
+	  $this.errors[field._name] = field.errors;
 	}
 	return success;
       };
-      return self;
+      
+      return $this;
     };
+    
   };
 
   var Required = function() {
     return function(field) {
-      if(!isdef(field.raw_data)) {
+      if(!field.raw_data) {
 	field.errors.push(sf("Field {0} is required", field._name));
 	return false;
       }
@@ -355,6 +380,7 @@ var JSForm;
   JSForm = Form;
 
   JSForm.StringField = StringField;
+  JSForm.TextAreaField = TextAreaField;
   JSForm.IntegerField = IntegerField;
   JSForm.PasswordField = PasswordField;
   JSForm.BooleanField = BooleanField;
@@ -363,6 +389,7 @@ var JSForm;
 
   JSForm.widgets = {
     TextInput: TextInput,
+    TextAreaInput: TextAreaInput,
     PasswordInput: PasswordInput,
     CheckboxInput: CheckboxInput
   };

@@ -319,6 +319,17 @@
       var form = Form();
       equal(String(form.name.label), "<label for=\"name\">First Name</label>", "form.name to string");
     });
+
+    test("field textarea field to string", function() {
+      expect(2);
+      var Form = JSForm({
+	name: JSForm.TextAreaField()
+      });
+      var form = Form();
+      equal(String(form.name), "<textarea id=\"name\" name=\"name\"></textarea>");
+      var form = Form({name: "test"});
+      equal(String(form.name), "<textarea id=\"name\" name=\"name\">test</textarea>");
+    });
     
   });
 
