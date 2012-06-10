@@ -1,6 +1,6 @@
 var JSForm;
 
-(function($) {
+(function() {
   
   function isdef(obj) {
     return obj != undefined && obj != null;
@@ -138,43 +138,43 @@ var JSForm;
     return f;
   }
 
-  var TextWidget = function(field) {
-    var properties = {
-      name: field._name, 
-      type: "text"
+  var Input = function() {
+    var call = function(field) {
+      properties = {
+	name: field._name,
+	type: f.type
+      };
+      if(isdef(field.raw_data))
+	properties.value = field.value();
+      if (field.cssclass) {
+	properties["class"] = field.cssclass.join(" ");
+      }
+      return f.render(properties);
     };
-    if(isdef(field.raw_data))
-      properties.value = field.value();
-    if (field.cssclass) {
-      properties["class"] = field.cssclass.join(" ");
-    }
-    return sf("<input {0}/>", toHtml(properties));
+    f = call;
+    f.type = null;
+    f.render = function(properties) {
+      return sf("<input {0}/>", toHtml(properties));
+    };
+    return f;
   };
 
-  var PasswordWidget = function(field) {
-    var properties = {
-      name: field._name, 
-      type: "password"
-    };
-    if(isdef(field.raw_data))
-      properties.value = field.value();
-    if (field.cssclass) {
-      properties["class"] = field.cssclass.join(" ");
-    }
-    return sf("<input {0}/>", toHtml(properties));
+  var TextInput = function() {
+    var that = Input();
+    that.type = "text";
+    return that;
   };
 
-  var CheckboxWidget = function(field) {
-    var properties = {
-      name: field._name, 
-      type: "checkbox"
-    };
-    if(isdef(field.raw_data))
-      properties.value = field.value();
-    if (field.cssclass) {
-      properties["class"] = field.cssclass.join(" ");
-    }
-    return sf("<input {0}/>", toHtml(properties));
+  var PasswordInput = function(field) {
+    var that = Input();
+    that.type = "password";
+    return that;
+  };
+
+  var CheckboxInput = function(field) {
+    var that = Input();
+    that.type = "checkbox";
+    return that;
   };
 
   var Field = function(options) {
@@ -226,19 +226,19 @@ var JSForm;
 
   var TextField = function(options) {
     var that = Field(options);
-    that.widget = TextWidget;
+    that.widget = TextInput();
     return that;
   };
 
   var PasswordField = function(options) {
     var that = Field(options);
-    that.widget = PasswordWidget;
+    that.widget = PasswordInput();
     return that;
   };
 
   var IntegerField = function(options) {
     var that = Field(options);
-    that.widget = TextWidget;
+    that.widget = TextInput();
 
     that.processData = function(data) {
       that.data = parseInt(data);
@@ -251,7 +251,7 @@ var JSForm;
 
   var BooleanField = function(options) {
     var that = Field(options);
-    that.widget = CheckboxWidget;
+    that.widget = CheckboxInput();
 
     that.processData = function(data) {
       that.data = data == "true";
@@ -271,7 +271,7 @@ var JSForm;
     var that = Field(options);
     var dp = that.options.decimalPlaces;
     that.decimalPlaces = dp ? dp : 2;
-    that.widget = TextWidget;
+    that.widget = TextInput();
 
     that.processData = function(data) {
       that.data = parseFloat(data).toFixed(that.decimalPlaces);
@@ -285,7 +285,7 @@ var JSForm;
   var DateField = function(options) {
     var that = Field(options);
     that.format = that.options.format ? that.options.format : "y-M-d h:m:s";
-    that.widget = TextWidget;
+    that.widget = TextInput();
 
     that.value = function() {
       var data = that.data;
@@ -352,13 +352,13 @@ var JSForm;
   JSForm.DateField = DateField;
 
   JSForm.widgets = {
-    TextWidget: TextWidget,
-    PasswordWidget: PasswordWidget,
-    CheckboxWidget: CheckboxWidget
+    TextInput: TextInput,
+    PasswordInput: PasswordInput,
+    CheckboxInput: CheckboxInput
   };
 
   JSForm.validators = {
     Required: Required
   };
 
-})(jQuery);
+})();
