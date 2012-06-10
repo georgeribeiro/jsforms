@@ -128,20 +128,22 @@ var JSForm;
   }
   
   var Label = function(field, text) {
-    if(!text) {
-      text = sc(field._name);
-    }
     var self = function() {
-      return sf("<label for=\"{0}\">{1}</label>", field._name, text);
+      return sf("<label for=\"{0}\">{1}</label>", self.field._name, self.text);
+    };
+    var toString = function() {
+      return self();
     };
     self.field = field;
-    self.text = text;
+    self.text = text || sc(field._name);
+    self.toString = toString;
     return self;
   }
 
   var Input = function() {
     var self = function(field) {
       var properties = {
+	id: field.id,
 	name: field._name,
 	type: self.type
       };
@@ -183,6 +185,10 @@ var JSForm;
       return self.widget(self);
     };
 
+    var toString = function() {
+      return self();
+    };
+
     var value = function() {
       return self.raw_data;
     };
@@ -196,6 +202,7 @@ var JSForm;
     
     var setName = function(name) {
       self._name = name;
+      self.id = self.options.id || name;
       self.label = Label(self, self.options.label);
     };
 
@@ -203,6 +210,7 @@ var JSForm;
       self.data = data;
     };
     
+    self.toString = toString;
     self.options = options || {};
     self.widget = null;
     if(self.options.widget)
@@ -219,6 +227,7 @@ var JSForm;
     self.processData = processData;
     self.value = value;
     self._name = null;
+    self.id = null;
     return self;
   };
 
@@ -363,4 +372,3 @@ var JSForm;
   };
 
 })();
-  

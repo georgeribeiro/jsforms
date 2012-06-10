@@ -38,7 +38,7 @@
 	name: JSForm.StringField()
       });
       var form = Form();
-      equal(form.name(),  "<input name=\"name\" type=\"text\"/>", "form.name toString");
+      equal(form.name(),  "<input id=\"name\" name=\"name\" type=\"text\"/>", "form.name toString");
     });
 
     test("field password html", function() {
@@ -46,7 +46,7 @@
 	name: JSForm.PasswordField()
       });
       var form = Form();
-      equal(form.name(),  "<input name=\"name\" type=\"password\"/>", "form.name toString");
+      equal(form.name(),  "<input id=\"name\" name=\"name\" type=\"password\"/>", "form.name toString");
     });
 
     test("field with classes css toString", function() {
@@ -56,7 +56,7 @@
 	})
       });
       var form = Form();
-      equal(form.name(),  "<input name=\"name\" type=\"text\" class=\"c1 c2\"/>", "form.name with class toString");
+      equal(form.name(),  "<input id=\"name\" name=\"name\" type=\"text\" class=\"c1 c2\"/>", "form.name with class toString");
     });
 
     test("field label", function() {
@@ -133,7 +133,7 @@
 	active: JSForm.BooleanField()
       });
       var form = Form();
-      equal(form.active(), "<input name=\"active\" type=\"checkbox\"/>", "field boolean toString()");
+      equal(form.active(), "<input id=\"active\" name=\"active\" type=\"checkbox\"/>", "field boolean toString()");
     });
 
     test("field boolean validate", function() {
@@ -153,7 +153,7 @@
 	age: JSForm.IntegerField()
       });
       var form = Form({age: 1});
-      equal(form.age(), "<input name=\"age\" type=\"text\" value=\"1\"/>");
+      equal(form.age(), "<input id=\"age\" name=\"age\" type=\"text\" value=\"1\"/>");
     });
 
     test("field boolean valid and render", function() {
@@ -161,7 +161,7 @@
 	active: JSForm.IntegerField()
       });
       var form = Form({active: true});
-      equal(form.active(), "<input name=\"active\" type=\"text\" value=\"true\"/>");
+      equal(form.active(), "<input id=\"active\" name=\"active\" type=\"text\" value=\"true\"/>");
     });
 
     test("field decimal", function() {
@@ -169,7 +169,7 @@
 	price: JSForm.DecimalField()
       });
       var form = Form();
-      equal(form.price(), "<input name=\"price\" type=\"text\"/>");
+      equal(form.price(), "<input id=\"price\" name=\"price\" type=\"text\"/>");
     });
 
     test("field decimal validate", function() {
@@ -209,7 +209,7 @@
 	date: JSForm.DateField()
       });
       var form = Form();
-      equal(form.date(), "<input name=\"date\" type=\"text\"/>", "field date equal");
+      equal(form.date(), "<input id=\"date\" name=\"date\" type=\"text\"/>", "field date equal");
     });
     
     test("field date valid", function() {
@@ -241,7 +241,7 @@
       });
       var form = Form({date: "04/03/2012"});
       ok(form.validate(), "form is valid");
-      equal(form.date(), "<input name=\"date\" type=\"text\" value=\"04/03/2012\"/>", "render date");
+      equal(form.date(), "<input id=\"date\" name=\"date\" type=\"text\" value=\"04/03/2012\"/>", "render date");
     });
 
     test("field integer default", function() {
@@ -263,7 +263,7 @@
 	})
       });
       var form = Form();
-      equal(form.value(), "<input name=\"value\" type=\"text\" value=\"1\"/>", "value render");
+      equal(form.value(), "<input id=\"value\" name=\"value\" type=\"text\" value=\"1\"/>", "value render");
     });
 
     test("field date default render", function() {
@@ -274,7 +274,7 @@
 	})
       });
       var form = Form();
-      equal(form.date(), "<input name=\"date\" type=\"text\" value=\"20/04/2012\"/>", "date render");
+      equal(form.date(), "<input id=\"date\" name=\"date\" type=\"text\" value=\"20/04/2012\"/>", "date render");
     });
     
     test("validate text field with validator Required", function() {
@@ -297,7 +297,27 @@
       var form = Form();
       ok(!form.validate(), "form is invalid");
       equal(form.errors.name, "Field name is required", "form errors");
-      equal(form.name.errors, "Field name is required",  "form name errors");
+      equal(form.name.errors, "Field name is required",  "form.name errors");
+    });
+
+    test("field to string", function() {
+      var Form = JSForm({
+	name: JSForm.StringField({
+	  defaults: "---"
+	})
+      });
+      var form = Form();
+      equal(String(form.name), "<input id=\"name\" name=\"name\" type=\"text\" value=\"---\"/>", "form.name to string");
+    });
+
+    test("field label to string", function() {
+      var Form = JSForm({
+	name: JSForm.StringField({
+	  label: "First Name"
+	})
+      });
+      var form = Form();
+      equal(String(form.name.label), "<label for=\"name\">First Name</label>", "form.name to string");
     });
     
   });
