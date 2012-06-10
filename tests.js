@@ -80,7 +80,7 @@
     test("validate form with data", function() {
       var Form = JSForm({
 	name: JSForm.TextField({
-	  validators: [JSForm.validators.required]
+	  validators: [JSForm.validators.Required()]
 	})
       });
       form = Form({name: "test"});
@@ -90,10 +90,10 @@
     test("validate wrong form with data", function() {
       var Form = JSForm({
 	name: JSForm.TextField({
-	  validators: [JSForm.validators.required]
+	  validators: [JSForm.validators.Required()]
 	})
       });
-      form = Form({});
+      form = Form();
       ok(!form.validate(), "form validate");
     });
 
@@ -101,7 +101,7 @@
       expect(2);
       var Form = JSForm({
 	name: JSForm.TextField({
-	  validators: [JSForm.validators.required]
+	  validators: [JSForm.validators.Required()]
 	})
       });
       form = Form({"name": "test"});
@@ -109,11 +109,12 @@
       equal(form.name.data, "test", "form.name.data equal to \"test\"");
     });
 
-    test("field integer", function() {
+    test("field integer validate with data", function() {
       expect(3);
       var Form = JSForm({
 	age: JSForm.IntegerField()
       });
+      debugger;
       form = Form({age: "20"});
       ok(form.validate(), "form validate");
       ok(!isNaN(form.age.data), "data is a number");
@@ -140,7 +141,7 @@
       expect(2);
       var Form = JSForm({
 	active: JSForm.BooleanField({
-	  validators: [JSForm.validators.required]
+	  validators: [JSForm.validators.Required()]
 	})
       });
       form = Form({"active": "true"});

@@ -9,9 +9,7 @@ var JSForm;
   function sf(s) {
     var args = Array.prototype.slice.call(arguments, 1);
     return s.replace(/{(\d+)}/g, function(match, number) { 
-      return typeof args[number] != 'undefined'
-	? args[number]
-	: match;
+      return typeof args[number] != 'undefined' ? args[number] : match;
     });
   }
 
@@ -44,10 +42,10 @@ var JSForm;
     for(i in format) {
       var c = format[i];
       if (typeof c == "string") {
-	if (format[i] in formats)
-	  strregex += formats[c];
-	else
-	  strregex += c;
+        if (format[i] in formats)
+          strregex += formats[c]
+        else
+          strregex += c;
       }
     }
     return new RegExp("^" + strregex + "$", "g");
@@ -142,12 +140,11 @@ var JSForm;
 
   var TextWidget = function(field) {
     var properties = {
-      name: field.name_, 
+      name: field._name, 
       type: "text"
     };
-    if(isdef(field.data)) {
-      properties.value = field.renderValue();
-    }
+    if(isdef(field.raw_data))
+      properties.value = field.value();
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
     }
@@ -156,12 +153,11 @@ var JSForm;
 
   var PasswordWidget = function(field) {
     var properties = {
-      name: field.name_, 
+      name: field._name, 
       type: "password"
     };
-    if(isdef(field.data)) {
-      properties.value = field.renderValue();
-    }
+    if(isdef(field.raw_data))
+      properties.value = field.value();
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
     }
@@ -170,12 +166,11 @@ var JSForm;
 
   var CheckboxWidget = function(field) {
     var properties = {
-      name: field.name_, 
+      name: field._name, 
       type: "checkbox"
     };
-    if(isdef(field.data)) {
-      properties.value = field.renderValue();
-    }
+    if(isdef(field.raw_data))
+      properties.value = field.value();
     if (field.cssclass) {
       properties["class"] = field.cssclass.join(" ");
     }
@@ -191,24 +186,25 @@ var JSForm;
       return widget(f);
     };
 
-    var renderValue = function() {
-      return f.data;
+    var value = function() {
+      return f.raw_data;
     }
 
-    var validate = function(data) {
-      var r = true;
-      for(k in f.validators) {
-	if(!f.validators[k](data))
-	  r = false;
+    var validate = function() {
+      for(i in f.validators) {
+	f.validators[i](f);
       }
-      f.data = data;
-      return r;
+      return f.errors.length == 0;
     }
     
     var setName = function(name) {
-      f.name_ = name;
+      f._name = name;
       f.label = Label(name, f.options.label ? f.options.label : sc(name));
     };
+
+    var processData = function(data) {
+      f.data = data;
+    }
 
     var df = options.defaults;
     
@@ -218,10 +214,13 @@ var JSForm;
     f.label = null;
     f.cssclass = options.cssclass;
     f.validators = options.validators; 
+    f.errors = [];
     f.data = df ? (typeof df == "function" ? df() : df) : null;
+    f.raw_data = null;
     f.validate = validate;
     f.setName = setName;
-    f.renderValue = renderValue;
+    f.processData = processData;
+    f.value = value;
     return f;
   };
 
@@ -240,15 +239,11 @@ var JSForm;
   var IntegerField = function(options) {
     var that = Field(options);
     that.widget = TextWidget;
-    
-    var thatvalidate = that.validate;
-    that.validate = function(data) {
-      if(isNaN(data))
-	return false;
-      var r = thatvalidate(data);
-      if(r)
-	that.data = parseInt(data);
-      return r;
+
+    that.processData = function(data) {
+      that.data = parseInt(data);
+      if(isNaN(that.data))
+	that.errors.push("Not is a valid integer");
     };
     
     return that;
@@ -257,13 +252,16 @@ var JSForm;
   var BooleanField = function(options) {
     var that = Field(options);
     that.widget = CheckboxWidget;
-    
-    thatvalidate = that.validate;
-    that.validate = function(data) {
-      r = thatvalidate(data);
-      if(r)
-	that.data = data == "true";
-      return r;
+
+    that.processData = function(data) {
+      that.data = data == "true";
+    };
+
+    that.value = function() {
+      if(that.data)
+	return "true";
+      else
+	return "false";
     };
    
     return that;
@@ -271,16 +269,14 @@ var JSForm;
 
   var DecimalField = function(options) {
     var that = Field(options);
-    that.decimalPlaces = that.options.decimalPlaces ? that.options.decimalPlaces : 2;
+    var dp = that.options.decimalPlaces;
+    that.decimalPlaces = dp ? dp : 2;
     that.widget = TextWidget;
-    
-    thatvalidate = that.validate;
-    that.validate = function(data) {
-      var r = thatvalidate(data);
-      if(isNaN(data))
-	return false;
+
+    that.processData = function(data) {
       that.data = parseFloat(data).toFixed(that.decimalPlaces);
-      return r;
+      if(isNaN(that.data))
+	that.errors.push("Not is a decimal valid");
     };
     
     return that;
@@ -290,19 +286,18 @@ var JSForm;
     var that = Field(options);
     that.format = that.options.format ? that.options.format : "y-M-d h:m:s";
     that.widget = TextWidget;
-    thatvalidate = that.validate;
-    that.validate = function(data) {
-      var r = thatvalidate(data);
-      var d = Date.parseDate(data, that.format);
-      if (d == null)
-	return false;
-      that.data = d;
-      return r;
-    };
-    that.renderValue = function() {
+
+    that.value = function() {
       var data = that.data;
       return data.formated(that.format);
     };
+
+    that.processData = function(data) {
+      that.data = Date.parseDate(data, that.format);
+      if(!isdef(that.data))
+	that.errors.push("Not is a date valid");
+    }
+    
     return that;
   }
 
@@ -312,24 +307,39 @@ var JSForm;
       var data = data || {};
       var form = {};
       for(k in fields) {
-	form[k] = fields[k];
-	form[k].setName(k);
+	var field = fields[k];
+	field.setName(k);
 	if(isdef(data) && isdef(data[k])) {
-	  form[k].data = data[k];
+	  field.raw_data = data[k];
+	  field.processData(data[k]);
+	} else {
+	  field.raw_data = field.data;
 	}
+	form[k] = field;
       }
       form.validate = function() {
-	var r = true;
-	for(k in fields) {
-	  if(!fields[k].validate(data[k] || fields[k].data)) {
-	    r = false;
+	var success = true;
+	for(i in fields) {
+	  var field = fields[i];
+	  
+	  if(!field.validate(field)) {
+	    success = false;
 	  }
 	}
-	return r;
+	return success;
       };
       return form;
     };
     return klass;
+  };
+
+  var Required = function() {
+    return function(field) {
+      if(!isdef(field.raw_data)) {
+	field.errors.push(sf("Field {0} is required", field._name));
+	return false;
+      }
+    };
   };
 
   JSForm = Form;
@@ -348,12 +358,7 @@ var JSForm;
   };
 
   JSForm.validators = {
-    required: function(data) {
-      if (data)
-	return true;
-      else
-	return false;
-    }
+    Required: Required
   };
 
 })(jQuery);
