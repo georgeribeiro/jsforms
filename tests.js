@@ -16,7 +16,7 @@
     
     test("simple form", function() {
       var Form = JSForm({
-	name: JSForm.TextField()
+	name: JSForm.StringField()
       });
       form = Form()
       ok(form.name, "LoginForm.name");
@@ -25,7 +25,7 @@
     test("simple form with two fields", function() {
       expect(2);
       var LoginForm = JSForm({
-	name: JSForm.TextField(),
+	name: JSForm.StringField(),
 	password: JSForm.PasswordField()
       }); 
       form = LoginForm();
@@ -35,7 +35,7 @@
     
     test("field name html", function() {
       var Form = JSForm({
-	name: JSForm.TextField()
+	name: JSForm.StringField()
       });
       form = Form();
       equal(form.name(),  "<input name=\"name\" type=\"text\"/>", "form.name toString");
@@ -51,7 +51,7 @@
 
     test("field with classes css toString", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
+	name: JSForm.StringField({
 	  cssclass: ["c1", "c2"]
 	})
       });
@@ -61,7 +61,7 @@
 
     test("field label", function() {
       var Form = JSForm({
-	name: JSForm.TextField()
+	name: JSForm.StringField()
       });
       form = Form();
       equal(form.name.label(),  "<label for=\"name\">Name</label>");
@@ -69,7 +69,7 @@
 
     test("field label different field name", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
+	name: JSForm.StringField({
 	  label: "First Name"
 	})
       });
@@ -79,7 +79,7 @@
 
     test("validate form with data", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
+	name: JSForm.StringField({
 	  validators: [JSForm.validators.Required()]
 	})
       });
@@ -89,7 +89,7 @@
 
     test("validate wrong form with data", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
+	name: JSForm.StringField({
 	  validators: [JSForm.validators.Required()]
 	})
       });
@@ -100,7 +100,7 @@
     test("after validate get data", function() {
       expect(2);
       var Form = JSForm({
-	name: JSForm.TextField({
+	name: JSForm.StringField({
 	  validators: [JSForm.validators.Required()]
 	})
       });
@@ -279,7 +279,7 @@
     
     test("validate text field with validator Required", function() {
       var Form = JSForm({
-	name: JSForm.TextField({
+	name: JSForm.StringField({
 	  validators: [JSForm.validators.Required()]
 	})
       });

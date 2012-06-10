@@ -221,7 +221,7 @@ var JSForm;
     return self;
   };
 
-  var TextField = function(options) {
+  var StringField = function(options) {
     var self = Field(options);
     self.widget = TextInput();
     return self;
@@ -343,7 +343,7 @@ var JSForm;
 
   JSForm = Form;
 
-  JSForm.TextField = TextField;
+  JSForm.StringField = StringField;
   JSForm.IntegerField = IntegerField;
   JSForm.PasswordField = PasswordField;
   JSForm.BooleanField = BooleanField;
