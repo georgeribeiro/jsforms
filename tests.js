@@ -114,7 +114,6 @@
       var Form = JSForm({
 	age: JSForm.IntegerField()
       });
-      debugger;
       form = Form({age: "20"});
       ok(form.validate(), "form validate");
       ok(!isNaN(form.age.data), "data is a number");
@@ -276,6 +275,16 @@
       });
       form = Form();
       equal(form.date(), "<input name=\"date\" type=\"text\" value=\"20/04/2012\"/>", "date render");
+    });
+    
+    test("validate text field with validator Required", function() {
+      var Form = JSForm({
+	name: JSForm.TextField({
+	  validators: [JSForm.validators.Required()]
+	})
+      });
+      form = Form({name: "name"});
+      ok(form.validate(), "form is valid");
     });
     
   });

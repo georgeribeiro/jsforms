@@ -17,7 +17,7 @@ var JSForm;
     var result = s.replace(/[A-Z]/g, function(x) { return " " + x });
     return result.charAt(0).toUpperCase() + result.substr(1);
   }
-
+  
   function slp(val, size, ch) {
     var result = String(val);
     if(!isdef(ch)) {
@@ -128,184 +128,182 @@ var JSForm;
   
   var Label = function(field, text) {
     if(!text) {
-      text = text.capitalize();
+      text = sc(field._name);
     }
-    var f = function() {
-      return sf("<label for=\"{0}\">{1}</label>", field, text);
+    var self = function() {
+      return sf("<label for=\"{0}\">{1}</label>", field._name, text);
     };
-    f.field = field;
-    f.text = text;
-    return f;
+    self.field = field;
+    self.text = text;
+    return self;
   }
 
   var Input = function() {
-    var call = function(field) {
+    var self = function(field) {
       properties = {
 	name: field._name,
-	type: f.type
+	type: self.type
       };
       if(isdef(field.raw_data))
 	properties.value = field.value();
       if (field.cssclass) {
 	properties["class"] = field.cssclass.join(" ");
       }
-      return f.render(properties);
+      return self.render(properties);
     };
-    f = call;
-    f.type = null;
-    f.render = function(properties) {
+    self.type = null;
+    self.render = function(properties) {
       return sf("<input {0}/>", toHtml(properties));
     };
-    return f;
+    return self;
   };
 
   var TextInput = function() {
-    var that = Input();
-    that.type = "text";
-    return that;
+    var self = Input();
+    self.type = "text";
+    return self;
   };
 
   var PasswordInput = function(field) {
-    var that = Input();
-    that.type = "password";
-    return that;
+    var self = Input();
+    self.type = "password";
+    return self;
   };
 
   var CheckboxInput = function(field) {
-    var that = Input();
-    that.type = "checkbox";
-    return that;
+    var self = Input();
+    self.type = "checkbox";
+    return self;
   };
 
   var Field = function(options) {
     
-    var options = options || {};
-    
-    var call = function() {
-      var widget = options.widget ? options.widget : f.widget;
-      return widget(f);
+    var self = function() {
+      return self.widget(self);
     };
 
     var value = function() {
-      return f.raw_data;
-    }
+      return self.raw_data;
+    };
 
     var validate = function() {
-      for(i in f.validators) {
-	f.validators[i](f);
+      for(i in self.validators) {
+	self.validators[i](self);
       }
-      return f.errors.length == 0;
-    }
+      return self.errors.length == 0;
+    };
     
     var setName = function(name) {
-      f._name = name;
-      f.label = Label(name, f.options.label ? f.options.label : sc(name));
+      self._name = name;
+      self.label = Label(self, self.options.label);
     };
 
     var processData = function(data) {
-      f.data = data;
-    }
-
-    var df = options.defaults;
+      self.data = data;
+    };
     
-    var f = call;
-    f.options = options;
-    f.widget = null;
-    f.label = null;
-    f.cssclass = options.cssclass;
-    f.validators = options.validators; 
-    f.errors = [];
-    f.data = df ? (typeof df == "function" ? df() : df) : null;
-    f.raw_data = null;
-    f.validate = validate;
-    f.setName = setName;
-    f.processData = processData;
-    f.value = value;
-    return f;
+    self.options = options || {};
+    self.widget = null;
+    if(self.options.widget)
+      self.widget = self.options.widget;
+    self.label = null;
+    self.cssclass = self.options.cssclass;
+    self.validators = self.options.validators; 
+    self.errors = [];
+    var df = self.options.defaults;
+    self.data = df ? (typeof df == "function" ? df() : df) : null;
+    self.raw_data = null;
+    self.validate = validate;
+    self.setName = setName;
+    self.processData = processData;
+    self.value = value;
+    self._name = null;
+    return self;
   };
 
   var TextField = function(options) {
-    var that = Field(options);
-    that.widget = TextInput();
-    return that;
+    var self = Field(options);
+    self.widget = TextInput();
+    return self;
   };
 
   var PasswordField = function(options) {
-    var that = Field(options);
-    that.widget = PasswordInput();
-    return that;
+    var self = Field(options);
+    self.widget = PasswordInput();
+    return self;
   };
 
   var IntegerField = function(options) {
-    var that = Field(options);
-    that.widget = TextInput();
+    var self = Field(options);
+    self.widget = TextInput();
 
-    that.processData = function(data) {
-      that.data = parseInt(data);
-      if(isNaN(that.data))
-	that.errors.push("Not is a valid integer");
+    self.processData = function(data) {
+      self.data = parseInt(data);
+      if(isNaN(self.data))
+	self.errors.push("Not is a valid integer");
     };
     
-    return that;
+    return self;
   };
 
   var BooleanField = function(options) {
-    var that = Field(options);
-    that.widget = CheckboxInput();
+    var self = Field(options);
+    self.widget = CheckboxInput();
 
-    that.processData = function(data) {
-      that.data = data == "true";
+    self.processData = function(data) {
+      self.data = data == "true";
     };
 
-    that.value = function() {
-      if(that.data)
+    self.value = function() {
+      if(self.data)
 	return "true";
       else
 	return "false";
     };
    
-    return that;
+    return self;
   };
 
   var DecimalField = function(options) {
-    var that = Field(options);
-    var dp = that.options.decimalPlaces;
-    that.decimalPlaces = dp ? dp : 2;
-    that.widget = TextInput();
+    var self = Field(options);
+    var dp = self.options.decimalPlaces;
+    self.decimalPlaces = dp ? dp : 2;
+    self.widget = TextInput();
 
-    that.processData = function(data) {
-      that.data = parseFloat(data).toFixed(that.decimalPlaces);
-      if(isNaN(that.data))
-	that.errors.push("Not is a decimal valid");
+    self.processData = function(data) {
+      self.data = parseFloat(data).toFixed(self.decimalPlaces);
+      if(isNaN(self.data))
+	self.errors.push("Not is a decimal valid");
     };
     
-    return that;
+    return self;
   }
 
   var DateField = function(options) {
-    var that = Field(options);
-    that.format = that.options.format ? that.options.format : "y-M-d h:m:s";
-    that.widget = TextInput();
+    var self = Field(options);
+    self.format = self.options.format ? self.options.format : "y-M-d h:m:s";
+    self.widget = TextInput();
 
-    that.value = function() {
-      var data = that.data;
-      return data.formated(that.format);
+    self.value = function() {
+      var data = self.data;
+      return data.formated(self.format);
     };
 
-    that.processData = function(data) {
-      that.data = Date.parseDate(data, that.format);
-      if(!isdef(that.data))
-	that.errors.push("Not is a date valid");
+    self.processData = function(data) {
+      self.data = Date.parseDate(data, self.format);
+      if(!isdef(self.data))
+	self.errors.push("Not is a date valid");
     }
     
-    return that;
+    return self;
   }
 
   var Form = function(fields) {
-    var fields = fields;
-    var klass = function(data) {
+    return function(data) {
       var data = data || {};
-      var form = {};
+      var self = {
+	_fields: {}
+      };
       for(k in fields) {
 	var field = fields[k];
 	field.setName(k);
@@ -315,22 +313,22 @@ var JSForm;
 	} else {
 	  field.raw_data = field.data;
 	}
-	form[k] = field;
+	self[k] = field;
+	self._fields[k] = field;
       }
-      form.validate = function() {
+      self.validate = function() {
 	var success = true;
-	for(i in fields) {
-	  var field = fields[i];
+	for(i in self._fields) {
+	  var field = self._fields[i];
 	  
-	  if(!field.validate(field)) {
+	  if(!field.validate()) {
 	    success = false;
 	  }
 	}
 	return success;
       };
-      return form;
+      return self;
     };
-    return klass;
   };
 
   var Required = function() {
@@ -339,6 +337,7 @@ var JSForm;
 	field.errors.push(sf("Field {0} is required", field._name));
 	return false;
       }
+      return true;
     };
   };
 
@@ -362,3 +361,4 @@ var JSForm;
   };
 
 })();
+  
