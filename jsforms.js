@@ -150,6 +150,7 @@ var JSForm;
       if (!field.editable) {
 	properties["readonly"] = "readonly";
       }
+      $this.field = field;
       return $this.render(properties);
     };
     $this.type = null;
@@ -177,17 +178,35 @@ var JSForm;
     return $this;
   }
 
-  var PasswordInput = function(field) {
+  var PasswordInput = function() {
     var $this = Input();
     $this.type = "password";
     return $this;
   };
 
-  var CheckboxInput = function(field) {
+  var CheckboxInput = function() {
     var $this = Input();
     $this.type = "checkbox";
     return $this;
   };
+
+  var SelectInput = function() {
+    var $this = function(field) {
+      var value = field.valueField;
+      var display = field.displayField;
+      var choices = field.choices;
+      var html = [];
+      html.push(sf("<select name=\"{0}\">", field._name));
+      for(var i in choices) {
+	var choice = choices[i];
+	html.push(sf("  <option value=\"{0}\">{1}</option>", choice[value], choice[display]));
+      };
+      html.push("</select>");
+      return html.join("\n");
+    };
+    
+    return $this;
+  }
 
   var Field = function(options) {
     
@@ -331,6 +350,15 @@ var JSForm;
     return $this;
   }
 
+  var SelectField = function(options) {
+    var $this = Field(options);
+    $this.valueField = options.valueField;
+    $this.displayField = options.displayField;
+    $this.choices = options.choices;
+    $this.widget = SelectInput();
+    return $this;
+  };
+
   var Form = function(fields) {
     
     return function(data) {
@@ -389,6 +417,7 @@ var JSForm;
   JSForm.BooleanField = BooleanField;
   JSForm.DecimalField = DecimalField;
   JSForm.DateField = DateField;
+  JSForm.SelectField = SelectField;
 
   JSForm.widgets = {
     TextInput: TextInput,

@@ -340,6 +340,37 @@
       var form = Form();
       equal(String(form.name), "<input id=\"name\" name=\"name\" type=\"text\" readonly=\"readonly\"/>", "form.name toString");
     });
+
+    test("field select", function() {
+      var Form = JSForm({
+	names: JSForm.SelectField({
+	  choices: [
+	    {
+	      value: 0,
+	      text: "N0"
+	    },
+	    {
+	      value: 1,
+	      text: "N1"
+	    },
+	    {
+	      value: 2,
+	      text: "N2"
+	    }
+	  ],
+	  valueField: "value",
+	  displayField: "text"
+	})
+      });
+      var form = Form();
+      equal(String(form.names), 
+	    "<select name=\"names\">\n" +
+	    "  <option value=\"0\">N0</option>\n" +
+	    "  <option value=\"1\">N1</option>\n" +
+	    "  <option value=\"2\">N2</option>\n" +
+	    "</select>",
+	    "form.names toString");
+    });
     
   });
 
