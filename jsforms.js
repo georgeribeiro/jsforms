@@ -39,7 +39,7 @@ var JSForm;
       s: "(\\d{2})"
     };
     var strregex = "";
-    for(i in format) {
+    for(var i in format) {
       var c = format[i];
       if (typeof c == "string") {
         if (format[i] in formats)
@@ -120,8 +120,8 @@ var JSForm;
   
   function toHtml(options) {
     var properties = [];
-    for(key in options) {
-      properties.push(sf("{0}=\"{1}\"", key, options[key]));
+    for(var i in options) {
+      properties.push(sf("{0}=\"{1}\"", i, options[i]));
     }
     return properties.join(" ");
   }
@@ -140,7 +140,7 @@ var JSForm;
 
   var Input = function() {
     var self = function(field) {
-      properties = {
+      var properties = {
 	name: field._name,
 	type: self.type
       };
@@ -187,7 +187,7 @@ var JSForm;
     };
 
     var validate = function() {
-      for(i in self.validators) {
+      for(var i in self.validators) {
 	self.validators[i](self);
       }
       return self.errors.length == 0;
@@ -304,26 +304,27 @@ var JSForm;
       var self = {
 	_fields: {}
       };
-      for(k in fields) {
-	var field = fields[k];
-	field.setName(k);
-	if(isdef(data) && isdef(data[k])) {
-	  field.raw_data = data[k];
-	  field.processData(data[k]);
+      for(var i in fields) {
+	var field = fields[i];
+	field.setName(i);
+	if(isdef(data) && isdef(data[i])) {
+	  field.raw_data = data[i];
+	  field.processData(data[i]);
 	} else {
 	  field.raw_data = field.data;
 	}
-	self[k] = field;
-	self._fields[k] = field;
+	self[i] = field;
+	self._fields[i] = field;
+	self.errors = {};
       }
       self.validate = function() {
 	var success = true;
-	for(i in self._fields) {
+	for(var i in self._fields) {
 	  var field = self._fields[i];
-	  
 	  if(!field.validate()) {
 	    success = false;
 	  }
+	  self.errors[field._name] = field.errors;
 	}
 	return success;
       };

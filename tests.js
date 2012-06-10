@@ -18,7 +18,7 @@
       var Form = JSForm({
 	name: JSForm.StringField()
       });
-      form = Form()
+      var form = Form()
       ok(form.name, "LoginForm.name");
     });
 
@@ -28,7 +28,7 @@
 	name: JSForm.StringField(),
 	password: JSForm.PasswordField()
       }); 
-      form = LoginForm();
+      var form = LoginForm();
       ok(form.name, "LoginForm.name");
       ok(form.password, "LoginForm.password");
     });
@@ -37,7 +37,7 @@
       var Form = JSForm({
 	name: JSForm.StringField()
       });
-      form = Form();
+      var form = Form();
       equal(form.name(),  "<input name=\"name\" type=\"text\"/>", "form.name toString");
     });
 
@@ -45,7 +45,7 @@
       var Form = JSForm({
 	name: JSForm.PasswordField()
       });
-      form = Form();
+      var form = Form();
       equal(form.name(),  "<input name=\"name\" type=\"password\"/>", "form.name toString");
     });
 
@@ -55,7 +55,7 @@
 	  cssclass: ["c1", "c2"]
 	})
       });
-      form = Form();
+      var form = Form();
       equal(form.name(),  "<input name=\"name\" type=\"text\" class=\"c1 c2\"/>", "form.name with class toString");
     });
 
@@ -63,7 +63,7 @@
       var Form = JSForm({
 	name: JSForm.StringField()
       });
-      form = Form();
+      var form = Form();
       equal(form.name.label(),  "<label for=\"name\">Name</label>");
     });
 
@@ -73,7 +73,7 @@
 	  label: "First Name"
 	})
       });
-      form = Form();
+      var form = Form();
       equal(form.name.label(),  "<label for=\"name\">First Name</label>");
     });
 
@@ -83,7 +83,7 @@
 	  validators: [JSForm.validators.Required()]
 	})
       });
-      form = Form({name: "test"});
+      var form = Form({name: "test"});
       ok(form.validate(), "form validate");
     });
 
@@ -93,7 +93,7 @@
 	  validators: [JSForm.validators.Required()]
 	})
       });
-      form = Form();
+      var form = Form();
       ok(!form.validate(), "form validate");
     });
 
@@ -104,7 +104,7 @@
 	  validators: [JSForm.validators.Required()]
 	})
       });
-      form = Form({"name": "test"});
+      var form = Form({"name": "test"});
       ok(form.validate(), "form validate");
       equal(form.name.data, "test", "form.name.data equal to \"test\"");
     });
@@ -114,7 +114,7 @@
       var Form = JSForm({
 	age: JSForm.IntegerField()
       });
-      form = Form({age: "20"});
+      var form = Form({age: "20"});
       ok(form.validate(), "form validate");
       ok(!isNaN(form.age.data), "data is a number");
       equal(form.age.data, 20, "data equal to 20");
@@ -124,7 +124,7 @@
       var Form = JSForm({
 	age: JSForm.IntegerField()
       });
-      form = Form({age: "a"});
+      var form = Form({age: "a"});
       ok(!form.validate(), "form invalid");
     });
 
@@ -132,7 +132,7 @@
       var Form = JSForm({
 	active: JSForm.BooleanField()
       });
-      form = Form();
+      var form = Form();
       equal(form.active(), "<input name=\"active\" type=\"checkbox\"/>", "field boolean toString()");
     });
 
@@ -143,7 +143,7 @@
 	  validators: [JSForm.validators.Required()]
 	})
       });
-      form = Form({"active": "true"});
+      var form = Form({"active": "true"});
       ok(form.validate(), "valid form");
       equal(form.active.data, true, "active is true");
     });
@@ -152,7 +152,7 @@
       var Form = JSForm({
 	age: JSForm.IntegerField()
       });
-      form = Form({age: 1});
+      var form = Form({age: 1});
       equal(form.age(), "<input name=\"age\" type=\"text\" value=\"1\"/>");
     });
 
@@ -160,7 +160,7 @@
       var Form = JSForm({
 	active: JSForm.IntegerField()
       });
-      form = Form({active: true});
+      var form = Form({active: true});
       equal(form.active(), "<input name=\"active\" type=\"text\" value=\"true\"/>");
     });
 
@@ -168,7 +168,7 @@
       var Form = JSForm({
 	price: JSForm.DecimalField()
       });
-      form = Form();
+      var form = Form();
       equal(form.price(), "<input name=\"price\" type=\"text\"/>");
     });
 
@@ -177,7 +177,7 @@
       var Form = JSForm({
 	price: JSForm.DecimalField()
       });
-      form = Form({price: "22.2"});
+      var form = Form({price: "22.2"});
       ok(form.validate(), "form validate");
       equal(form.price.data, "22.20", "price equal to 22.20");
     });
@@ -208,7 +208,7 @@
       var Form = JSForm({
 	date: JSForm.DateField()
       });
-      form = Form();
+      var form = Form();
       equal(form.date(), "<input name=\"date\" type=\"text\"/>", "field date equal");
     });
     
@@ -218,7 +218,7 @@
 	  format: "d/M/y"
 	})
       });
-      form = Form({date: "04/05/2012"});
+      var form = Form({date: "04/05/2012"});
       ok(form.validate(), "form is valid");
     });
 
@@ -228,7 +228,7 @@
 	  format: "d/M/y"
 	})
       });
-      form = Form({date: "01-01-2012"});
+      var form = Form({date: "01-01-2012"});
       ok(!form.validate(), "form is invalid");
     });
     
@@ -239,7 +239,7 @@
 	  format: "d/M/y"
 	})
       });
-      form = Form({date: "04/03/2012"});
+      var form = Form({date: "04/03/2012"});
       ok(form.validate(), "form is valid");
       equal(form.date(), "<input name=\"date\" type=\"text\" value=\"04/03/2012\"/>", "render date");
     });
@@ -251,7 +251,7 @@
 	  defaults: 1
 	})
       });
-      form = Form();
+      var form = Form();
       ok(form.validate(), "form is valid");
       equal(form.value.data, 1, "value default equal 1");
     });
@@ -262,7 +262,7 @@
 	  defaults: 1
 	})
       });
-      form = Form();
+      var form = Form();
       equal(form.value(), "<input name=\"value\" type=\"text\" value=\"1\"/>", "value render");
     });
 
@@ -273,7 +273,7 @@
 	  defaults: function() { return new Date(2012, 3, 20); }
 	})
       });
-      form = Form();
+      var form = Form();
       equal(form.date(), "<input name=\"date\" type=\"text\" value=\"20/04/2012\"/>", "date render");
     });
     
@@ -283,8 +283,21 @@
 	  validators: [JSForm.validators.Required()]
 	})
       });
-      form = Form({name: "name"});
+      var form = Form({name: "name"});
       ok(form.validate(), "form is valid");
+    });
+
+    test("validate text field with validator Required and invalid", function() {
+      expect(3);
+      var Form = JSForm({
+	name: JSForm.StringField({
+	  validators: [JSForm.validators.Required()]
+	})
+      });
+      var form = Form();
+      ok(!form.validate(), "form is invalid");
+      equal(form.errors.name, "Field name is required", "form errors");
+      equal(form.name.errors, "Field name is required",  "form name errors");
     });
     
   });
