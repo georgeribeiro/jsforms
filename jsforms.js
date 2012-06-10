@@ -138,16 +138,17 @@ var JSForm;
 
   var Input = function() {
     var $this = function(field) {
-      var properties = {
-	id: field.id,
-	name: field._name
-      };
+      var properties = {};
+      properties["id"] = field.id;
+      properties["name"] = field._name;
       if($this.type)
-	properties.type = $this.type;
+	properties["type"] = $this.type;
       if(field.raw_data)
-	properties.value = field.value();
-      if (field.cssclass) {
+	properties["value"] = field.value();
+      if (field.cssclass)
 	properties["class"] = field.cssclass.join(" ");
+      if (!field.editable) {
+	properties["readonly"] = "readonly";
       }
       return $this.render(properties);
     };
@@ -226,6 +227,8 @@ var JSForm;
       $this.widget = $this.options.widget;
     $this.label = null;
     $this.cssclass = $this.options.cssclass;
+    var ed = $this.options.editable;
+    $this.editable = ed != undefined && ed != null ? ed : true;
     $this.validators = $this.options.validators; 
     $this.errors = [];
     var df = $this.options.defaults;

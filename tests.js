@@ -330,6 +330,16 @@
       var form = Form({name: "test"});
       equal(String(form.name), "<textarea id=\"name\" name=\"name\">test</textarea>");
     });
+
+    test("field string not editable", function() {
+      var Form = JSForm({
+	name: JSForm.StringField({
+	  editable: false
+	})
+      });
+      var form = Form();
+      equal(String(form.name), "<input id=\"name\" name=\"name\" type=\"text\" readonly=\"readonly\"/>", "form.name toString");
+    });
     
   });
 
