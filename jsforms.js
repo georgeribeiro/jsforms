@@ -14,8 +14,9 @@ var JSForm;
   }
 
   function sc(s) {
-    var result = s.replace(/[A-Z]/g, function(x) { return " " + x });
-    return result.charAt(0).toUpperCase() + result.substr(1);
+    return s
+      .replace(/[A-Z]/g, function(x) { return " " + x })
+      .replace(/^\w/g, function(x) { return x.toUpperCase() });
   }
   
   function slp(val, size, ch) {
