@@ -2,19 +2,28 @@ var JSForm;
 
 (function() {
 
+  /*
+  * string format
+  */
   function sf(s) {
     var args = Array.prototype.slice.call(arguments, 1);
-    return s.replace(/{(\d+)}/g, function(match, number) { 
+    return s.replace(/\{(\d+)\}/g, function(match, number) {
       return typeof args[number] != 'undefined' ? args[number] : match;
     });
   }
 
+  /*
+  * string capitalize
+  */
   function sc(s) {
     return s
-      .replace(/[A-Z]/g, function(x) { return " " + x })
-      .replace(/^\w/g, function(x) { return x.toUpperCase() });
+    .replace(/[A-Z]/g, function(x) { return " " + x; })
+    .replace(/^\w/g, function(x) { return x.toUpperCase(); });
   }
   
+  /*
+  * string left justify
+  */
   function slp(val, size, ch) {
     var result = String(val);
     if(!ch) {
@@ -26,6 +35,9 @@ var JSForm;
     return result;
   }
 
+  /*
+  * date format to Regex
+  */
   function formatToRegex(format) {
     var formats = {
       d: "(\\d{2})",
@@ -48,81 +60,94 @@ var JSForm;
     return new RegExp("^" + strregex + "$", "g");
   }
 
-  Date.parseDate = function(strdate, format) {
-    var 
-    d = 1, 
-    M = 1, 
-    y = 1970, 
-    h = 0, 
-    m = 0, 
-    s = 0;
+  /*
+  parseString formated to date
+  */
+  parseDate = function(strdate, format) {
+    var
+      d = 1,
+      M = 1,
+      y = 1970,
+      h = 0,
+      m = 0,
+      s = 0;
     
     var re = formatToRegex(format);
     var results = re.exec(strdate);
-    if (results == null) {
+    if (results === null) {
       return null;
     }
     var tokens = format.replace(/[^d|M|y|h|m|s]/g, "").split("");
     for(var i = 0; i < tokens.length; i++) {
       if(tokens[i] == "d")
-	d = parseInt(results[i + 1], 10);
+        d = parseInt(results[i + 1], 10);
       else if (tokens[i] == "M") {
-	M = parseInt(results[i + 1], 10);
-	if (M > 12) {
-	  return null;
-	}
-      }
-      else if (tokens[i] == "y")
-	y = parseInt(results[i + 1], 10);
-      else if (tokens[i] == "h")
-	h = parseInt(results[i + 1], 10);
-      else if (tokens[i] == "m")
-	m = parseInt(results[i + 1], 10);
-      else if (tokens[i] == "s")
-	s = parseInt(results[i + 1], 10);
+        M = parseInt(results[i + 1], 10);
+        if (M > 12) {
+         return null;
+        }
     }
-    var date = new Date(y, M - 1, d, h, m, s);
-    if(date == "Invalid Date") {
+    else if (tokens[i] == "y")
+      y = parseInt(results[i + 1], 10);
+    else if (tokens[i] == "h")
+      h = parseInt(results[i + 1], 10);
+    else if (tokens[i] == "m")
+      m = parseInt(results[i + 1], 10);
+    else if (tokens[i] == "s")
+      s = parseInt(results[i + 1], 10);
+    }
+    var dateResult = new Date(y, M - 1, d, h, m, s);
+    if(dateResult == "Invalid Date") {
       return null;
     }
-    return date;
+    return dateResult;
   };
 
-  Date.prototype.formated = function(format) {
+  /*
+  * formatDate
+  */
+  formatDate = function(date, format) {
     var re = /[d|M|y|h|m|s]/g;
-    var $this = this;
     var result = format.replace(re, function(match, number) {
+      var r;
       if (match == "d") {
-	var r = $this.getDate();
-	return slp(r, 2, "0");
+        r = date.getDate();
+        return slp(r, 2, "0");
       } else if (match == "M") {
-	var r = $this.getMonth() + 1;
-	return slp(r, 2, "0");
+        r = date.getMonth() + 1;
+        return slp(r, 2, "0");
       } else if (match == "y") {
-	var r = $this.getFullYear();
-	return slp(r, 4, "0");
+        r = date.getFullYear();
+        return slp(r, 4, "0");
       } else if (match == "h") {
-	var r = $this.getHours();
-	return slp(r, 2, "0");
+        r = date.getHours();
+        return slp(r, 2, "0");
       } else if (match == "m") {
-	var r = $this.getMinutes();
-	return slp(r, 2, "0");
+        r = date.getMinutes();
+        return slp(r, 2, "0");
       } else if (match == "s") {
-	var r = $this.getSeconds();
-	return slp(r, 2, "0");
+        r = date.getSeconds();
+        return slp(r, 2, "0");
       }
     });
     return result;
   };
-  
-  function toHtml(options) {
+
+  /*
+  object to html tag
+  Ex: o = {
+    type: 'text',
+    name: 'test'
+  } = <input type="text" name="test"/>
+  */
+  toHtml = function(options) {
     var properties = [];
     for(var i in options) {
       properties.push(sf("{0}=\"{1}\"", i, options[i]));
     }
     return properties.join(" ");
-  }
-  
+  };
+
   var Label = function(field, text) {
     var $this = function() {
       return sf("<label for=\"{0}\">{1}</label>", $this.field._name, $this.text);
@@ -134,7 +159,7 @@ var JSForm;
     $this.text = text || sc(field._name);
     $this.toString = toString;
     return $this;
-  }
+  };
 
   var Input = function() {
     var $this = function(field) {
@@ -142,13 +167,13 @@ var JSForm;
       properties["id"] = field.id;
       properties["name"] = field._name;
       if($this.type)
-	properties["type"] = $this.type;
+        properties["type"] = $this.type;
       if(field.raw_data)
-	properties["value"] = field.value();
+        properties["value"] = field.value();
       if (field.cssclass)
-	properties["class"] = field.cssclass.join(" ");
+        properties["class"] = field.cssclass.join(" ");
       if (!field.editable) {
-	properties["readonly"] = "readonly";
+        properties["readonly"] = "readonly";
       }
       $this.field = field;
       return $this.render(properties);
@@ -168,15 +193,15 @@ var JSForm;
 
   var TextAreaInput = function() {
     var $this = Input();
-    
+
     $this.render = function(properties) {
       var value = properties.value;
       delete properties.value;
       return sf("<textarea {0}>{1}</textarea>", toHtml(properties), value ? value : "");
     };
-    
+
     return $this;
-  }
+  };
 
   var PasswordInput = function() {
     var $this = Input();
@@ -198,18 +223,17 @@ var JSForm;
       var html = [];
       html.push(sf("<select name=\"{0}\">", field._name));
       for(var i in choices) {
-	var choice = choices[i];
-	html.push(sf("  <option value=\"{0}\">{1}</option>", choice[value], choice[display]));
-      };
+       var choice = choices[i];
+       html.push(sf("  <option value=\"{0}\">{1}</option>", choice[value], choice[display]));
+      }
       html.push("</select>");
       return html.join("\n");
     };
-    
     return $this;
-  }
+  };
 
   var Field = function(options) {
-    
+
     var $this = function() {
       return $this.widget($this);
     };
@@ -224,11 +248,11 @@ var JSForm;
 
     var validate = function() {
       for(var i in $this.validators) {
-	$this.validators[i]($this);
-      }
-      return $this.errors.length == 0;
-    };
-    
+       $this.validators[i]($this);
+     }
+     return $this.errors.length === 0;
+   };
+
     var setName = function(name) {
       $this._name = name;
       $this.id = $this.options.id || name;
@@ -238,7 +262,7 @@ var JSForm;
     var processData = function(data) {
       $this.data = data;
     };
-    
+
     $this.toString = toString;
     $this.options = options || {};
     $this.widget = null;
@@ -247,8 +271,8 @@ var JSForm;
     $this.label = null;
     $this.cssclass = $this.options.cssclass;
     var ed = $this.options.editable;
-    $this.editable = ed != undefined && ed != null ? ed : true;
-    $this.validators = $this.options.validators; 
+    $this.editable = ed !== undefined && ed !== null ? ed : true;
+    $this.validators = $this.options.validators;
     $this.errors = [];
     var df = $this.options.defaults;
     $this.data = df ? (typeof df == "function" ? df() : df) : null;
@@ -274,7 +298,6 @@ var JSForm;
     return $this;
   };
 
-
   var PasswordField = function(options) {
     var $this = Field(options);
     $this.widget = PasswordInput();
@@ -286,13 +309,12 @@ var JSForm;
     $this.widget = TextInput();
 
     $this.processData = function(data) {
-      $this.data = parseInt(data);
+      $this.data = parseInt(data, 10);
       if(isNaN($this.data)) {
-	$this.data = null;
-	$this.errors.push("Not is a valid integer");
+       $this.data = null;
+       $this.errors.push("Not is a valid integer");
       }
     };
-    
     return $this;
   };
 
@@ -306,11 +328,10 @@ var JSForm;
 
     $this.value = function() {
       if($this.data)
-	return "true";
+        return "true";
       else
-	return "false";
+        return "false";
     };
-   
     return $this;
   };
 
@@ -323,13 +344,13 @@ var JSForm;
     $this.processData = function(data) {
       $this.data = parseFloat(data).toFixed($this.decimalPlaces);
       if(isNaN($this.data)) {
-	$this.data = null;
-	$this.errors.push("Not is a decimal valid");
-      }
-    };
-    
-    return $this;
-  }
+       $this.data = null;
+       $this.errors.push("Not is a decimal valid");
+     }
+   };
+
+   return $this;
+  };
 
   var DateField = function(options) {
     var $this = Field(options);
@@ -338,17 +359,17 @@ var JSForm;
 
     $this.value = function() {
       var data = $this.data;
-      return data.formated($this.format);
+      return formatDate(data, $this.format);
     };
 
     $this.processData = function(data) {
-      $this.data = Date.parseDate(data, $this.format);
+      $this.data = parseDate(data, $this.format);
       if(!$this.data)
-	$this.errors.push("Not is a date valid");
-    }
-    
-    return $this;
-  }
+       $this.errors.push("Not is a date valid");
+   };
+
+   return $this;
+  };
 
   var SelectField = function(options) {
     var $this = Field(options);
@@ -360,52 +381,52 @@ var JSForm;
   };
 
   var Form = function(fields) {
-    
+
     return function(data) {
-      var data = data || {};
+      data = data || {};
       var $this = {
-	_fields: {}
-      };
-      
-      for(var i in fields) {
-	var field = fields[i];
-	field.setName(i);
-	if(data && data[i]) {
-	  field.raw_data = data[i];
-	  field.processData(data[i]);
-	} else {
-	  field.raw_data = field.data;
-	}
-	$this[i] = field;
-	$this._fields[i] = field;
-	$this.errors = {};
-      };
-      
-      $this.validate = function() {
-	var success = true;
-	for(var i in $this._fields) {
-	  var field = $this._fields[i];
-	  if(!field.validate()) {
-	    success = false;
-	  }
-	  $this.errors[field._name] = field.errors;
-	}
-	return success;
-      };
-      
-      return $this;
-    };
-    
+       _fields: {}
+     };
+
+     for(var i in fields) {
+       var field = fields[i];
+       field.setName(i);
+       if(data && data[i]) {
+         field.raw_data = data[i];
+         field.processData(data[i]);
+       } else {
+         field.raw_data = field.data;
+       }
+       $this[i] = field;
+       $this._fields[i] = field;
+       $this.errors = {};
+     }
+
+     $this.validate = function() {
+       var success = true;
+       for(var i in $this._fields) {
+         var field = $this._fields[i];
+         if(!field.validate()) {
+           success = false;
+         }
+         $this.errors[field._name] = field.errors;
+       }
+       return success;
+     };
+
+     return $this;
+   };
+
   };
 
   var Required = function() {
     return function(field) {
       if(!field.raw_data) {
-	field.errors.push(sf("Field {0} is required", field._name));
-	return false;
-      }
-      return true;
-    };
+       field.errors.push(sf("Field {0} is required", field._name));
+       return false;
+     }
+     return true;
+   };
   };
 
   JSForm = Form;
